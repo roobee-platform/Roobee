@@ -286,18 +286,19 @@ contract RoobeeToken is ERC20Burnable, ERC20Mintable {
         return balanceOf(from).sub(freezeOf(from));
     }
 
-    function mintWithFreeze(address to, uint256 value, uint256 daysForUnfreeze) public onlyMinter returns (bool) {
-        _setHold(to, value, daysForUnfreeze);
+    function mintWithFreeze(address to, uint256 value, uint256 unfreezeTimestamp) public onlyMinter returns (bool) {
+        require(now < unfreezeTimestamp);
+        _setHold(to, value, unfreezeTimestamp);
         mint(to, value);
         return true;
     }
 
-    function _setHold(address to, uint256 value, uint256 daysForUnfreeze) private {
+    function _setHold(address to, uint256 value, uint256 unfreezeTimestamp) private {
         FreezeParams memory freezeData;
         freezeData = _freezed[to];
         // freeze timestamp is unchangable
         if (freezeData.timestamp == 0) {
-            freezeData.timestamp = now.add(daysForUnfreeze.mul(1 days));
+            freezeData.timestamp = unfreezeTimestamp;
         }
         freezeData.value += value;
         _freezed[to] = freezeData;
