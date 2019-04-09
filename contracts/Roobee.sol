@@ -313,9 +313,27 @@ contract RoobeeToken is ERC20Burnable, ERC20Mintable {
         return super.transferFrom(from, to, value);
     }
 
+    function approveAndCall(address _spender, uint256 _value, string memory _extraData
+    ) public returns (bool success) {
+        approve(_spender, _value);
+
+        // This portion is copied from ConsenSys's Standard Token Contract. It
+        //  calls the receiveApproval function that is part of the contract that
+        //  is being approved (`_spender`). The function should look like:
+        //  `receiveApproval(address _from, uint256 _amount, address
+        //  _tokenContract, bytes _extraData)` It is assumed that the call
+        //  *should* succeed, otherwise the plain vanilla approve would be used
+        CallReceiver(_spender).approvalFallback(
+           msg.sender,
+           _value,
+           address(this),
+           _extraData
+        );
+        return true;
+    }
+
 }
 
 contract CallReceiver {
-    function approvalFallback(address _from, uint256 _value, address _token, string memory _data) public ;
-    function transferFallback(address _from, uint256 _value, address _token, string memory  _data) public ;
+    function approvalFallback(address _from, uint256 _value, address _token, string memory _extraData) public ;
 }
