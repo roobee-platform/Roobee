@@ -310,8 +310,18 @@ contract RoobeeToken is ERC20Burnable, ERC20Mintable {
     }
 
     function transferFrom(address from, address to, uint256 value) public returns (bool) {
-        getAvailableBalance(msg.sender).sub(value);
+        getAvailableBalance(from).sub(value);
         return super.transferFrom(from, to, value);
+    }
+
+    function burn(uint256 value) public returns (bool) {
+        getAvailableBalance(msg.sender).sub(value);
+        return super.burn(value);
+    }
+
+    function burnFrom(address from, uint256 value) public returns (bool)  {
+        getAvailableBalance(from).sub(value);
+        return super.burnFrom(from, value);
     }
 
     function approveAndCall(address _spender, uint256 _value, string memory _extraData
