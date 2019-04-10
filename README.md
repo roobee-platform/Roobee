@@ -17,7 +17,7 @@ Token Parameter | Value
 Token name	| Roobee
 Symbol 	 | Roobee
 Decimals |	18
-Max token amount to issue | 5 200 000 000
+Max token amount to issue | 5 400 000 000
 Tokens for Sale | 54%
 Tokens for Founders and Project Team | 15 %
 Tokens for Advisory Board |	5%
