@@ -246,7 +246,7 @@ contract ERC20Mintable is ERC20, MinterRole {
      * @return A boolean that indicates if the operation was successful.
      */
 
-    uint256 public constant maxSupply = 5200000000 * 1e18;
+    uint256 public constant maxSupply = 5400000000 * 1e18;
 
     function mint(address to, uint256 value) public onlyMinter returns (bool) {
         require(totalSupply().add(value) <= maxSupply);
