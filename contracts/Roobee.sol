@@ -246,7 +246,12 @@ contract ERC20Mintable is ERC20, MinterRole {
      * @return A boolean that indicates if the operation was successful.
      */
 
-    uint256 public constant maxSupply = 5400000000 * 1e18;
+    uint256 public  maxSupply;
+
+    constructor  (uint256 _maxSupply) public {
+        require(_maxSupply > 0);
+        maxSupply = _maxSupply;
+    }
 
     function mint(address to, uint256 value) public onlyMinter returns (bool) {
         require(totalSupply().add(value) <= maxSupply);
@@ -255,6 +260,7 @@ contract ERC20Mintable is ERC20, MinterRole {
     }
 
 }
+
 
 contract RoobeeToken is ERC20Burnable, ERC20Mintable {
 
@@ -265,15 +271,34 @@ contract RoobeeToken is ERC20Burnable, ERC20Mintable {
     struct FreezeParams {
         uint256 timestamp;
         uint256 value;
+        bool subsequentUnlock;
     }
 
     mapping (address => FreezeParams) private _freezed;
 
+    constructor () public ERC20Mintable(5400000000 * 1e18) {
+    }
+
     function freezeOf(address owner) public view returns (uint256) {
         if (_freezed[owner].timestamp <= now){
-            return 0;
+            if (_freezed[owner].subsequentUnlock){
+                uint256  monthsPassed;
+                monthsPassed = now.sub(_freezed[owner].timestamp).div(30 days);
+                if (monthsPassed >= 10)
+                {
+                    return 0;
+                }
+                else
+                {
+                    return _freezed[owner].value.mul(10-monthsPassed).div(10);
+                }
+            }
+            else {
+                return 0;
+            }
         }
-        else {
+        else
+        {
             return _freezed[owner].value;
         }
     }
@@ -283,17 +308,18 @@ contract RoobeeToken is ERC20Burnable, ERC20Mintable {
     }
 
     function getAvailableBalance(address from) public view returns (uint256) {
+
         return balanceOf(from).sub(freezeOf(from));
     }
 
-    function mintWithFreeze(address to, uint256 value, uint256 unfreezeTimestamp) public onlyMinter returns (bool) {
-        require(now < unfreezeTimestamp);
-        _setHold(to, value, unfreezeTimestamp);
-        mint(to, value);
+    function mintWithFreeze(address _to, uint256 _value, uint256 _unfreezeTimestamp, bool _subsequentUnlock) public onlyMinter returns (bool) {
+        require(now < _unfreezeTimestamp);
+        _setHold(_to, _value, _unfreezeTimestamp, _subsequentUnlock);
+        mint(_to, _value);
         return true;
     }
 
-    function _setHold(address to, uint256 value, uint256 unfreezeTimestamp) private {
+    function _setHold(address to, uint256 value, uint256 unfreezeTimestamp, bool subsequentUnlock) private {
         FreezeParams memory freezeData;
         freezeData = _freezed[to];
         // freeze timestamp is unchangable
@@ -301,6 +327,7 @@ contract RoobeeToken is ERC20Burnable, ERC20Mintable {
             freezeData.timestamp = unfreezeTimestamp;
         }
         freezeData.value += value;
+        freezeData.subsequentUnlock = subsequentUnlock;
         _freezed[to] = freezeData;
     }
 
@@ -314,14 +341,14 @@ contract RoobeeToken is ERC20Burnable, ERC20Mintable {
         return super.transferFrom(from, to, value);
     }
 
-    function burn(uint256 value) public returns (bool) {
+    function burn(uint256 value) public {
         getAvailableBalance(msg.sender).sub(value);
-        return super.burn(value);
+        super.burn(value);
     }
 
-    function burnFrom(address from, uint256 value) public returns (bool)  {
+    function burnFrom(address from, uint256 value) public  {
         getAvailableBalance(from).sub(value);
-        return super.burnFrom(from, value);
+        super.burnFrom(from, value);
     }
 
     function approveAndCall(address _spender, uint256 _value, string memory _extraData
