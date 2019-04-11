@@ -246,7 +246,8 @@ contract ERC20Mintable is ERC20, MinterRole {
      * @return A boolean that indicates if the operation was successful.
      */
 
-    uint256 public  maxSupply;
+    uint256 public maxSupply;
+    uint256 public tokensMinted;
 
     constructor  (uint256 _maxSupply) public {
         require(_maxSupply > 0);
@@ -254,7 +255,8 @@ contract ERC20Mintable is ERC20, MinterRole {
     }
 
     function mint(address to, uint256 value) public onlyMinter returns (bool) {
-        require(totalSupply().add(value) <= maxSupply);
+        require(tokensMinted.add(value) <= maxSupply);
+        tokensMinted = tokensMinted.add(value);
         _mint(to, value);
         return true;
     }
@@ -326,7 +328,7 @@ contract RoobeeToken is ERC20Burnable, ERC20Mintable {
         if (freezeData.timestamp == 0) {
             freezeData.timestamp = unfreezeTimestamp;
         }
-        freezeData.value += value;
+        freezeData.value = freezeData.value.add(value);
         freezeData.subsequentUnlock = subsequentUnlock;
         _freezed[to] = freezeData;
     }
