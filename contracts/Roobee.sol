@@ -326,9 +326,9 @@ contract RoobeeToken is ERC20Burnable, ERC20Mintable {
         // freeze timestamp is unchangable
         if (freezeData.timestamp == 0) {
             freezeData.timestamp = unfreezeTimestamp;
+            freezeData.subsequentUnlock = subsequentUnlock;
         }
         freezeData.value = freezeData.value.add(value);
-        freezeData.subsequentUnlock = subsequentUnlock;
         _freezed[to] = freezeData;
     }
 
