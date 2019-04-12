@@ -265,8 +265,8 @@ contract ERC20Mintable is ERC20, MinterRole {
 
 contract RoobeeToken is ERC20Burnable, ERC20Mintable {
 
-    string public constant name = "Roobee";
-    string public constant symbol = "Roobee";
+    string public constant name = "ROOBEE";
+    string public constant symbol = "ROOBEE";
     uint8 public constant decimals = 18;
 
     struct FreezeParams {
