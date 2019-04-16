@@ -357,10 +357,10 @@ contract RoobeeToken is ERC20Burnable, ERC20Mintable {
         approve(_spender, _value);
 
         // This portion is copied from ConsenSys's Standard Token Contract. It
-        //  calls the receiveApproval function that is part of the contract that
+        //  calls the approvalFallback function that is part of the contract that
         //  is being approved (`_spender`). The function should look like:
-        //  `receiveApproval(address _from, uint256 _amount, address
-        //  _tokenContract, bytes _extraData)` It is assumed that the call
+        //  `approvalFallback(address _from, uint256 _value, address
+        //  _token, string memory _extraData)` It is assumed that the call
         //  *should* succeed, otherwise the plain vanilla approve would be used
         CallReceiver(_spender).approvalFallback(
            msg.sender,
