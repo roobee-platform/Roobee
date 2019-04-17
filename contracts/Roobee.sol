@@ -338,7 +338,7 @@ contract RoobeeToken is ERC20Burnable, ERC20Mintable {
     }
 
     function transferFrom(address from, address to, uint256 value) public returns (bool) {
-        require(getAvailableBalance(msg.sender) >= value);
+        require(getAvailableBalance(from) >= value);
         return super.transferFrom(from, to, value);
     }
 
@@ -348,7 +348,7 @@ contract RoobeeToken is ERC20Burnable, ERC20Mintable {
     }
 
     function burnFrom(address from, uint256 value) public  {
-        require(getAvailableBalance(msg.sender) >= value);
+        require(getAvailableBalance(from) >= value);
         super.burnFrom(from, value);
     }
 
