@@ -18,8 +18,8 @@ Token Smart contract is a subject to independent third-party technological audit
 
 Token Parameter | Value
 ------------ | -------------
-Token name	| Roobee
-Symbol 	 | Roobee
+Token name	| ROOBEE
+Symbol 	 | ROOBEE
 Decimals |	18
 Max token amount to issue | 5 400 000 000
 Freeze tokens |	yes
