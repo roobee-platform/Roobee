@@ -62,5 +62,4 @@ contract lockContract {
         return (_statuses[getLockedPeriod(holder)]);
     }
 
-
 }
