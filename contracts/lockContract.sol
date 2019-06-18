@@ -29,12 +29,12 @@ contract lockContract {
     }
 
 
-    function stringToUint(string memory s) internal view returns (uint result) {
+    function stringToUint(string memory s) internal pure returns (uint result) {
         bytes memory b = bytes(s);
         uint i;
         result = 0;
         for (i = 0; i < b.length; i++) {
-            uint c = uint(b[i]);
+            uint c = uint8(b[i]);
             if (c >= 48 && c <= 57) {
                 result = result * 10 + (c - 48);
             }
@@ -54,7 +54,7 @@ contract lockContract {
     }
 
 
-    function getLockedPeriod(address holder) pure public returns(uint) {
+    function getLockedPeriod(address holder) view public returns(uint) {
         return (_locked[holder].forTimestamp -  _locked[holder].fromTimestamp);
     }
 
