@@ -1,5 +1,7 @@
 var Roobee = artifacts.require("RoobeeToken");
+var rFund = artifacts.require("RewardFund");
 module.exports = function(deployer) {
-  // deploy HumansToken
-  deployer.deploy(Roobee)
+  deployer.deploy(Roobee).then(function() {
+    return deployer.deploy(rFund, Roobee.address);
+  });
 };

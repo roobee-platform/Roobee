@@ -1,34 +1,40 @@
 pragma solidity ^0.5.0;
-import "../Roobee.sol";
+import "../IERC20.sol";
 import "./Ownable.sol";
 
-contract RoobeeFund is Ownable {
-
-    using SafeMath for uint256;
+contract RewardFund is Ownable {
 
     struct Category {
         uint amount;
         uint limit;
     }
 
-    mapping (uint => Category) public categories ;
+    mapping (uint => Category) public categories;
+    mapping (address => mapping (uint => uint)) public rewardRecieved;
 
-
-    RoobeeToken constant public ROOBEE = RoobeeToken(0x352e2610eDb09F7Cc3a440a0CeB444dAbfAAc38b);
+    IERC20 constant public Token = IERC20(0xA31B1767e09f842ECFd4bc471Fe44F830E3891AA);
 
     function getBalance () public view returns(uint256)  {
-        return ROOBEE.balanceOf(address(this));
+        return Token.balanceOf(address(this));
     }
 
-    function payReward (uint _category, address _to) public onlyOwner returns(bool) {
-        return ROOBEE.transfer(_to, categories[_category].amount);
+    function payReward (uint _category, address _to) public onlyOwner  {
+        require(categories[_category].limit == 0 || rewardRecieved[_to][_category] < categories[_category].limit, "limit over");
+        Token.transfer(_to, categories[_category].amount);
+        rewardRecieved[_to][_category] += 1;
     }
 
     function addCategory(uint _ID, uint _amount, uint _limit) public onlyOwner  {
-        Category memory categoryData;
-        categoryData.amount = _amount;
-        categoryData.limit = _limit;
-        categories[_ID] = categoryData;
+        categories[_ID].amount = _amount;
+        categories[_ID].limit = _limit;
+    }
+
+    function changeCategoriesLimit(uint _ID, uint _limit) public {
+        categories[_ID].limit = _limit;
+    }
+
+    function changeCategoriesAmount(uint _ID, uint _amount) public {
+        categories[_ID].amount = _amount;
     }
 
 }
