@@ -1,5 +1,5 @@
 pragma solidity ^0.5.0;
-import "../IERC20.sol";
+import "./IERC20.sol";
 import "./Ownable.sol";
 
 contract RewardFund is Ownable {
@@ -12,7 +12,7 @@ contract RewardFund is Ownable {
     mapping (uint => Category) public categories;
     mapping (address => mapping (uint => uint)) public rewardRecieved;
 
-    IERC20 constant public Token = IERC20(0xA31B1767e09f842ECFd4bc471Fe44F830E3891AA);
+    IERC20 constant public Token = IERC20(0x6D46e4EDeDb4FBa8B83C1789FE8F38E7B6bB1809);
 
     function getBalance () public view returns(uint256)  {
         return Token.balanceOf(address(this));
