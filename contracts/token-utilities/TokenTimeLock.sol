@@ -22,7 +22,6 @@ contract TokenTimelock is Ownable {
     struct FreezeParams {
         uint256 releaseTime;
         uint256 initValue;
-        bool subsequentUnlock;
         uint256 monthlyUnlock;
         uint256 currentBalance;
     }
@@ -51,13 +50,11 @@ contract TokenTimelock is Ownable {
         address _beneficiary,
         uint256 _value,
         uint256 _releaseTime,
-        bool _subsequentUnlock,
         uint256 _monthlyUnlock) onlyOwner public
     {
         require(totalHeld().sub(totalReserved) >= _value, "not enough tokens");
         frozenTokens[_beneficiary] = FreezeParams(_releaseTime,
             _value,
-            _subsequentUnlock,
             _monthlyUnlock,
             _value);
         totalReserved = totalReserved.add(_value);
@@ -66,7 +63,7 @@ contract TokenTimelock is Ownable {
 
     function freezeOf(address _beneficiary) public view returns (uint256) {
         if (frozenTokens[_beneficiary].releaseTime <= now){
-            if (frozenTokens[_beneficiary].subsequentUnlock){
+            if (frozenTokens[_beneficiary].monthlyUnlock != 0){
                 uint256  monthsPassed;
                 monthsPassed = now.sub(frozenTokens[_beneficiary].releaseTime).div(30 days);
                 uint256 unlockedValue = monthsPassed.div(100).mul(frozenTokens[_beneficiary].monthlyUnlock);
