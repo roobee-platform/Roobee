@@ -27,11 +27,29 @@ contract TokenTimelock is Ownable {
     }
 
     mapping (address => FreezeParams) public frozenTokens;
+    mapping (address => bool) private _admins;
     uint256 public totalReserved;
 
+    modifier onlyAdmin() {
+        require(isAdmin(), " caller is not the admin");
+        _;
+    }
+
+    function isAdmin() public view returns (bool) {
+        return _admins[msg.sender];
+    }
+
+    function addAdmin(address admin) public onlyOwner {
+        _admins[admin] = true;
+    }
+
+    function renounceAdmin(address admin) public onlyOwner {
+        _admins[admin] = false;
+    }
 
     constructor (IERC20 token) public {
         _token = token;
+        _admins[msg.sender] = true;
     }
     /**
      * @return the token being held.
@@ -50,7 +68,7 @@ contract TokenTimelock is Ownable {
         address _beneficiary,
         uint256 _value,
         uint256 _releaseTime,
-        uint256 _monthlyUnlock) onlyOwner public
+        uint256 _monthlyUnlock) onlyAdmin public
     {
         require(totalHeld().sub(totalReserved) >= _value, "not enough tokens");
         frozenTokens[_beneficiary] = FreezeParams(_releaseTime,
@@ -101,7 +119,7 @@ contract TokenTimelock is Ownable {
         _token.transfer(_beneficiary, value);
     }
 
-    function unfreeze(address _to, uint256 _value) public onlyOwner {
+    function unfreeze(address _to, uint256 _value) public onlyAdmin {
         require(totalHeld().sub(totalReserved) >= _value);
         _token.transfer(_to, _value);
     }
