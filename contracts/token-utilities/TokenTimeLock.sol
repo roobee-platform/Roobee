@@ -67,7 +67,12 @@ contract TokenTimelock is Ownable {
                 uint256  monthsPassed;
                 monthsPassed = now.sub(frozenTokens[_beneficiary].releaseTime).div(30 days);
                 uint256 unlockedValue = frozenTokens[_beneficiary].initValue.mul(monthsPassed).mul(frozenTokens[_beneficiary].monthlyUnlock).div(100);
-                return frozenTokens[_beneficiary].initValue.sub(unlockedValue);
+                if (frozenTokens[_beneficiary].initValue < unlockedValue){
+                    return 0;
+                }
+                else {
+                    return frozenTokens[_beneficiary].initValue.sub(unlockedValue);
+                }
             }
             else {
                 return 0;
