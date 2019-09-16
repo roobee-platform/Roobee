@@ -22,7 +22,7 @@ contract TokenTimelock is Ownable {
     struct FreezeParams {
         uint256 releaseTime;
         uint256 initValue;
-        uint256 monthlyUnlock;
+        uint256 monthlyUnlockPercent;
         uint256 currentBalance;
     }
 
@@ -68,12 +68,14 @@ contract TokenTimelock is Ownable {
         address _beneficiary,
         uint256 _value,
         uint256 _releaseTime,
-        uint256 _monthlyUnlock) onlyAdmin public
+        uint256 _monthlyUnlockPercent) onlyAdmin public
     {
+        require(_releaseTime.sub(now) <= 365 days, "freeze period is too long");
+        require(frozenTokens[_beneficiary].currentBalance == 0, "there are unspended tokens");
         require(totalHeld().sub(totalReserved) >= _value, "not enough tokens");
         frozenTokens[_beneficiary] = FreezeParams(_releaseTime,
             _value,
-            _monthlyUnlock,
+            _monthlyUnlockPercent,
             _value);
         totalReserved = totalReserved.add(_value);
         emit tokensHeld(_beneficiary, _value);
@@ -81,10 +83,10 @@ contract TokenTimelock is Ownable {
 
     function freezeOf(address _beneficiary) public view returns (uint256) {
         if (frozenTokens[_beneficiary].releaseTime <= now){
-            if (frozenTokens[_beneficiary].monthlyUnlock != 0){
+            if (frozenTokens[_beneficiary].monthlyUnlockPercent != 0){
                 uint256  monthsPassed;
                 monthsPassed = now.sub(frozenTokens[_beneficiary].releaseTime).div(30 days);
-                uint256 unlockedValue = frozenTokens[_beneficiary].initValue.mul(monthsPassed).mul(frozenTokens[_beneficiary].monthlyUnlock).div(100);
+                uint256 unlockedValue = frozenTokens[_beneficiary].initValue.mul(monthsPassed).mul(frozenTokens[_beneficiary].monthlyUnlockPercent).div(100);
                 if (frozenTokens[_beneficiary].initValue < unlockedValue){
                     return 0;
                 }
