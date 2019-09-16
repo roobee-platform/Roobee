@@ -96,8 +96,9 @@ contract TokenTimelock is Ownable {
         uint256 value = availableBalance(_beneficiary);
         require(value > 0, "TokenTimelock: no tokens to release");
         require(_token.balanceOf(address(this)) >= value, "insuficient funds");
-        _token.transfer(_beneficiary, value);
         totalReserved = totalReserved.sub(value);
+        frozenTokens[_beneficiary].currentBalance = frozenTokens[_beneficiary].currentBalance.sub(value);
+        _token.transfer(_beneficiary, value);
     }
 
     function unfreeze(address _to, uint256 _value) public onlyOwner {
