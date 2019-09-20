@@ -1,4 +1,4 @@
-pragma solidity ^0.5.0;
+pragma solidity 0.5.0;
 
 import "../SafeMath.sol";
 import "./IERC20.sol";
@@ -39,11 +39,11 @@ contract TokenTimelock is Ownable {
         return _admins[msg.sender];
     }
 
-    function addAdmin(address admin) public onlyOwner {
+    function addAdmin(address admin) external onlyOwner {
         _admins[admin] = true;
     }
 
-    function renounceAdmin(address admin) public onlyOwner {
+    function renounceAdmin(address admin) external onlyOwner {
         _admins[admin] = false;
     }
 
@@ -62,14 +62,19 @@ contract TokenTimelock is Ownable {
         return _token.balanceOf(address(this));
     }
 
-    event tokensHeld(address _beneficiary, uint256 _value);
+    event TokensHeld(address indexed _beneficiary, uint256 _value);
 
     function holdTokens(
         address _beneficiary,
         uint256 _value,
         uint256 _releaseTime,
-        uint256 _monthlyUnlockPercent) onlyAdmin public
+        uint256 _monthlyUnlockPercent) onlyAdmin external
     {
+        /**
+        * If "monthlyUnlockPercent=0" it means that there are not any subsequant unlock,
+        * and all tokens will be unfrozen imidiately after "_releaseTime".
+        */
+        require(_monthlyUnlockPercent <= 100, "_monthlyUnlockPercent shoulbe <= 100");
         require(_releaseTime.sub(now) <= 365 days, "freeze period is too long");
         require(frozenTokens[_beneficiary].currentBalance == 0, "there are unspended tokens");
         require(totalHeld().sub(totalReserved) >= _value, "not enough tokens");
@@ -78,20 +83,21 @@ contract TokenTimelock is Ownable {
             _monthlyUnlockPercent,
             _value);
         totalReserved = totalReserved.add(_value);
-        emit tokensHeld(_beneficiary, _value);
+        emit TokensHeld(_beneficiary, _value);
     }
 
     function freezeOf(address _beneficiary) public view returns (uint256) {
-        if (frozenTokens[_beneficiary].releaseTime <= now){
-            if (frozenTokens[_beneficiary].monthlyUnlockPercent != 0){
+        FreezeParams memory freezeData = frozenTokens[_beneficiary];
+        if (freezeData.releaseTime <= now){
+            if (freezeData.monthlyUnlockPercent != 0){
                 uint256  monthsPassed;
-                monthsPassed = now.sub(frozenTokens[_beneficiary].releaseTime).div(30 days);
-                uint256 unlockedValue = frozenTokens[_beneficiary].initValue.mul(monthsPassed).mul(frozenTokens[_beneficiary].monthlyUnlockPercent).div(100);
-                if (frozenTokens[_beneficiary].initValue < unlockedValue){
+                monthsPassed = now.sub(freezeData.releaseTime).div(30 days);
+                uint256 unlockedValue = freezeData.initValue.mul(monthsPassed).mul(freezeData.monthlyUnlockPercent).div(100);
+                if (freezeData.initValue < unlockedValue){
                     return 0;
                 }
                 else {
-                    return frozenTokens[_beneficiary].initValue.sub(unlockedValue);
+                    return freezeData.initValue.sub(unlockedValue);
                 }
             }
             else {
@@ -100,7 +106,7 @@ contract TokenTimelock is Ownable {
         }
         else
         {
-            return frozenTokens[_beneficiary].initValue;
+            return freezeData.initValue;
         }
     }
 
@@ -112,7 +118,7 @@ contract TokenTimelock is Ownable {
     }
 
 
-    function release(address _beneficiary) public {
+    function release(address _beneficiary) external {
         uint256 value = availableBalance(_beneficiary);
         require(value > 0, "TokenTimelock: no tokens to release");
         require(_token.balanceOf(address(this)) >= value, "insuficient funds");
@@ -121,8 +127,8 @@ contract TokenTimelock is Ownable {
         _token.transfer(_beneficiary, value);
     }
 
-    function unfreeze(address _to, uint256 _value) public onlyAdmin {
-        require(totalHeld().sub(totalReserved) >= _value);
+    function unfreeze(address _to, uint256 _value) external onlyAdmin {
+        require(totalHeld().sub(totalReserved) >= _value, "not enough available tokens");
         _token.transfer(_to, _value);
     }
 }
